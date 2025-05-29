@@ -14,6 +14,8 @@
 - [Features (New Framework) 📙 :](#features-new-framework--)
 - [Installation 🛠️ :](#installation-%EF%B8%8F-)
 - [Plugin Development](#plugin-development)
+- [Multi-platform Support 🌍](#multi-platform-support-)
+- [C2 Module (MVP)](#c2-module-mvp)
 - [Changelog (Historical) 📌 :](#changelog-historical--)
 - [Badges 📌 :](#badges--)
 - [Support me (Original Author) 💰 :](#support-me-original-author--)
@@ -190,6 +192,63 @@ The Lockdoor Plugin Framework is designed with multi-platform support in mind, t
 *   Avoid hardcoding paths; use `os.path.join()` and other `os` module features for path manipulation.
 *   Be mindful of differences in shell commands or system utilities if your plugin uses `subprocess` to call external tools. Consider checking the OS (e.g., using `platform.system()`) and adapting behavior if necessary.
 *   If your plugin requires external non-Python dependencies, these would ideally be installable within the Docker environment. If they are host-system dependencies, this makes the plugin less portable.
+
+# C2 Module (MVP)
+
+A basic Command and Control (C2) module has been added as a plugin named "C2 Manager". This provides foundational capabilities for remote agent interaction.
+
+**Features (MVP):**
+-   HTTPS Listener for encrypted communications.
+-   Agent Registration: New agents can register with the C2.
+-   Agent Beaconing: Registered agents periodically check in.
+-   Basic Command Tasking: Send commands to agents and receive their output.
+-   Web Panel Integration: Manage the listener and interact with agents through the Flask web interface.
+
+**SSL Certificate Requirement:**
+The HTTPS C2 listener requires SSL certificates (`key.pem` and `cert.pem`) to function.
+1.  Create a directory named `c2_certs` in the root of the Lockdoor Framework project (i.e., alongside `run.py` and `plugins/`).
+2.  Place your `key.pem` and `cert.pem` files into this `./c2_certs/` directory.
+
+For testing purposes, you can generate self-signed certificates. The C2 Manager plugin will print a reminder and an example OpenSSL command to your console when it loads if these files are missing. Here's an example command:
+```bash
+# First, ensure the ./c2_certs directory exists:
+mkdir -p ./c2_certs
+
+# Then, generate the self-signed certificates:
+openssl req -x509 -newkey rsa:2048 -keyout ./c2_certs/key.pem -out ./c2_certs/cert.pem -days 365 -nodes -subj "/CN=localhost"
+```
+**Note:** For any real-world use, replace self-signed certificates with properly issued ones.
+
+**Managing the C2 Listener (Web Panel):**
+1.  Start the Lockdoor Framework: `docker run ...` (as per Installation instructions).
+2.  Access the web panel (usually `http://localhost:5000`).
+3.  Navigate to "C2 Management" from the main navigation (this link will appear once the C2 blueprint is integrated). Then select the "Listeners" tab.
+4.  The page displays the current listener status (e.g., "stopped", "running", "error_missing_certs").
+5.  If certificates are in place, you can set the desired host and port (defaults to `0.0.0.0` and `8443`) and click "Start Listener".
+6.  To stop the listener, click "Stop Listener".
+
+**Running the Test Agent:**
+A basic Python C2 agent is provided in `dev_tools/c2_agent/basic_agent.py` for testing the C2 functionality.
+1.  **Ensure the C2 Listener is Started:** Use the web panel as described above to start the HTTPS listener.
+2.  **Configure the Agent:**
+    *   Open `dev_tools/c2_agent/basic_agent.py`.
+    *   Verify `C2_URL`: It defaults to `https://localhost:8443`. Adjust if your Docker container is mapped to a different host or port externally.
+    *   If using the self-signed certificate generated above, ensure `VERIFY_SSL = False` in the agent script. For valid certs, set this to `True` or the path to your CA bundle.
+3.  **Run the Agent:**
+    Execute the agent script from your terminal (from the project root directory):
+    ```bash
+    python dev_tools/c2_agent/basic_agent.py
+    ```
+    The agent will attempt to register with the C2 listener and then start beaconing.
+
+**Interacting with Agents (Web Panel):**
+1.  Navigate to "C2 Management" -> "Agents" in the web panel.
+2.  Once the test agent (or any other compatible agent) registers, it will appear in the list.
+3.  Click on an "Agent ID" (or a "Details" button) to go to the agent detail page.
+4.  On the agent detail page, you can:
+    *   View more information about the agent (IP, registration data, last seen).
+    *   Enter commands in the "Send Command" form and submit them.
+    *   View the history of commands sent to the agent and their outputs.
 
 # Changelog (Historical) 📌 :
   #### Version v2.3 IS OUT !! (Original Project)

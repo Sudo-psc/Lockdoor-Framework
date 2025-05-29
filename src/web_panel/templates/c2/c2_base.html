@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}C2 Management - {{ super() }}{% endblock %}
+
+{% block content %}
+  <div class="container-fluid"> {# Changed to container-fluid for potentially wider C2 tables #}
+    <h2 class="mt-4">C2 Management</h2>
+    <ul class="nav nav-tabs mb-3">
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'c2.listeners' %}active{% endif %}" href="{{ url_for('c2.listeners') }}">Listeners</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link {% if request.endpoint == 'c2.agents' or request.endpoint == 'c2.agent_detail' %}active{% endif %}" href="{{ url_for('c2.agents') }}">Agents</a>
+      </li>
+      {# Add other C2 related navigation links here if needed in the future #}
+    </ul>
+
+    {# Flash messages specific to C2 blueprint could also be handled here if needed #}
+    {# For now, relying on base.html's flash message handling #}
+    
+    {% block c2_content %}
+      {# Content for specific C2 pages (listeners, agents, agent_detail) will go here #}
+    {% endblock %}
+  </div>
+{% endblock %}

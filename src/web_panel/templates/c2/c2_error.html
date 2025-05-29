@@ -1,0 +1,20 @@
+{% extends "c2_base.html" %}
+
+{% block c2_content %}
+  <div class="card">
+    <div class="card-header bg-danger text-white">
+      <h3>C2 Module Error</h3>
+    </div>
+    <div class="card-body">
+      <div class="alert alert-danger" role="alert">
+        <p><strong>An error occurred with the C2 Management module.</strong></p>
+        <p>{{ error_message | default("The C2 Manager plugin is not available or failed to load. Please check the plugin status and server logs.") }}</p>
+      </div>
+      <p>
+        Please ensure the "C2 Manager" plugin is correctly placed in the `plugins` directory and that there are no errors during its loading phase.
+      </p>
+      <a href="{{ url_for('list_plugins_route') }}" class="btn btn-info mt-3">View All Plugins</a>
+      <a href="{{ url_for('index') }}" class="btn btn-secondary mt-3">Back to Home</a>
+    </div>
+  </div>
+{% endblock %}

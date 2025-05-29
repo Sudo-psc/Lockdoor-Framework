@@ -1,0 +1,70 @@
+{% extends "c2_base.html" %}
+
+{% block c2_content %}
+  <div class="card">
+    <div class="card-header">
+      <h3>Listener Control</h3>
+    </div>
+    <div class="card-body">
+      {% if listener_status %}
+        <div class="row">
+          <div class="col-md-6">
+            <h4>Current Status:</h4>
+            <p>Overall Status: <strong>{{ listener_status.status | capitalize }}</strong></p>
+            <p>Host: <code>{{ listener_status.host }}</code></p>
+            <p>Port: <code>{{ listener_status.port }}</code></p>
+            <p>Listener Thread Active: 
+              <span class="badge {{ 'badge-success' if listener_status.thread_active else 'badge-secondary' }}">
+                {{ listener_status.thread_active | string | capitalize }}
+              </span>
+            </p>
+            <p>Keyfile ({{ listener_status.keyfile_exists | string | lower }}.pem) Exists: 
+              <span class="badge {{ 'badge-success' if listener_status.keyfile_exists else 'badge-danger' }}">
+                {{ listener_status.keyfile_exists | string | capitalize }}
+              </span>
+            </p>
+             <p>Certfile ({{ listener_status.certfile_exists | string | lower }}.pem) Exists: 
+              <span class="badge {{ 'badge-success' if listener_status.certfile_exists else 'badge-danger' }}">
+                {{ listener_status.certfile_exists | string | capitalize }}
+              </span>
+            </p>
+            {% if listener_status.status == 'error_missing_certs' or not listener_status.keyfile_exists or not listener_status.certfile_exists %}
+            <div class="alert alert-warning" role="alert">
+                SSL certificates not found. Please generate them and place them in the <code>c2_certs</code> directory.
+                Example: <code>openssl req -x509 -newkey rsa:2048 -keyout c2_certs/key.pem -out c2_certs/cert.pem -days 365 -nodes -subj "/CN=localhost"</code>
+            </div>
+            {% endif %}
+          </div>
+          <div class="col-md-6">
+            <h4>Actions:</h4>
+            <form method="POST" class="mt-2">
+              {% if listener_status.status != 'running' %}
+                <div class="form-group">
+                  <label for="host">Host to Bind:</label>
+                  <input type="text" class="form-control" name="host" id="host" value="{{ listener_status.host | default('0.0.0.0') }}">
+                </div>
+                <div class="form-group">
+                  <label for="port">Port:</label>
+                  <input type="number" class="form-control" name="port" id="port" value="{{ listener_status.port | default(8443) }}">
+                </div>
+                <button type="submit" class="btn btn-success" name="action" value="start_listener">
+                  <i class="fas fa-play"></i> Start Listener
+                </button>
+              {% else %}
+                <button type="submit" class="btn btn-danger" name="action" value="stop_listener">
+                  <i class="fas fa-stop"></i> Stop Listener
+                </button>
+              {% endif %}
+            </form>
+          </div>
+        </div>
+      {% else %}
+        <div class="alert alert-warning" role="alert">
+          Listener status is currently unavailable. The C2 Manager plugin might not be loaded or is experiencing issues.
+        </div>
+      {% endif %}
+    </div>
+  </div>
+  {# Consider adding Font Awesome or similar for icons like play/stop #}
+  {# Example: <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"> in base.html #}
+{% endblock %}

