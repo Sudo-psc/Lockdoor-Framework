@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to the Lockdoor Framework!</h1>
+    <p class="lead">This is a modular and extensible framework for cybersecurity tools and operations.</p>
+    <hr class="my-4">
+    <p>You can manage and interact with various plugins through this web panel.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('list_plugins_route') }}" role="button">View Plugins</a>
+</div>
+{% endblock %}

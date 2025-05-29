@@ -1,0 +1,26 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lockdoor_plugin_framework"
+version = "0.1.0"
+authors = [
+  { name="Your Name/AI Agent", email="you@example.com" },
+]
+description = "A plugin framework for cybersecurity tools with a web panel."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License", # Assuming MIT, update if different based on original repo
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "Flask>=2.0", # Or "Django>=4.0" if you prefer Django
+    # Add other core dependencies here as they become clear
+]
+
+[project.urls]
+"Homepage" = "https://github.com/SofianeHamlaoui/Lockdoor-Framework" # Update if this is a fork
+"Bug Tracker" = "https://github.com/SofianeHamlaoui/Lockdoor-Framework/issues" # Update if this is a fork
