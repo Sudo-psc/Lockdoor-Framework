@@ -3,15 +3,46 @@
 {% block content %}
 <h2>Available Plugins</h2>
 <br>
-{% if plugins %}
-    <ul class="list-group">
-        {% for plugin in plugins %}
-            <li class="list-group-item">
-                <h5>{{ plugin.get_name() }}</h5>
-                <p>{{ plugin.get_description() }}</p>
-            </li>
-        {% endfor %}
-    </ul>
+{% if plugins_data %}
+    {% for plugin_name, plugin_info in plugins_data.items() %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <h4 class="mb-0">{{ plugin_info.instance.get_name() }}</h4>
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ plugin_info.instance.get_description() }}</p>
+
+                {% if plugin_info.actions %}
+                    <h5>Actions:</h5>
+                    <ul class="list-group list-group-flush">
+                        {% for action in plugin_info.actions %}
+                            <li class="list-group-item">
+                                <h6><strong>{{ action.name }}</strong></h6>
+                                <p class="mb-1">{{ action.description }}</p>
+                                {% if action.parameters %}
+                                    <small>Parameters:</small>
+                                    <ul class="list-unstyled ml-3">
+                                        {% for param in action.parameters %}
+                                            <li>
+                                                <code>{{ param.name }}</code>
+                                                {% if param.type %}<span class="badge badge-info ml-1 mr-1">{{ param.type }}</span>{% endif %}
+                                                {% if param.description %}- {{ param.description }}{% endif %}
+                                                {% if param.required %}<span class="badge badge-danger ml-1">Required</span>{% endif %}
+                                            </li>
+                                        {% endfor %}
+                                    </ul>
+                                {% else %}
+                                    <small>This action takes no parameters.</small>
+                                {% endif %}
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="font-italic">This plugin provides no actions.</p>
+                {% endif %}
+            </div>
+        </div>
+    {% endfor %}
 {% else %}
     <div class="alert alert-info" role="alert">
         No plugins found or loaded.

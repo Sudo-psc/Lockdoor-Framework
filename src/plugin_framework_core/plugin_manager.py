@@ -1,11 +1,14 @@
 import os
 import importlib.util
 import inspect
-from .plugin_interface import LockdoorPlugin
+from typing import Dict, Any, List # Added for type hinting
+from .plugin_interface import LockdoorPlugin, Action # Added Action for type hinting
 
 class PluginManager:
     def __init__(self):
-        self.plugins = {}
+        # self.plugins will store plugin instances and their actions
+        # e.g., { 'plugin_name': {'instance': plugin_object, 'actions': list_of_action_dicts} }
+        self.plugins: Dict[str, Dict[str, Any]] = {}
 
     def discover_plugins(self, plugin_folder="plugins"):
         if not os.path.exists(plugin_folder):
@@ -27,9 +30,6 @@ class PluginManager:
                 except Exception as e:
                     print(f"Error importing plugin module {module_name}: {e}")
             elif os.path.isdir(item_path):
-                # Handle subdirectories (potential plugin packages)
-                # For now, we'll assume plugins are single .py files or a specific structure
-                # e.g. a __init__.py that registers the plugin or contains the plugin class
                 init_py_path = os.path.join(item_path, "__init__.py")
                 if os.path.isfile(init_py_path):
                     module_name = item # The directory name is the module name
@@ -37,16 +37,7 @@ class PluginManager:
                         spec = importlib.util.spec_from_file_location(module_name, init_py_path)
                         if spec and spec.loader:
                             plugin_module = importlib.util.module_from_spec(spec)
-                            # Add the parent of plugin_folder to sys.path to allow relative imports
-                            # within the plugin package if the plugin is a directory.
-                            # This is a simplified approach. For robust package handling,
-                            # consider installing plugins or using more sophisticated path management.
-                            # parent_dir = os.path.dirname(plugin_folder)
-                            # if parent_dir not in sys.path:
-                            #    sys.path.insert(0, parent_dir)
                             spec.loader.exec_module(plugin_module)
-                            # if parent_dir in sys.path and parent_dir != ".":
-                            #    sys.path.pop(0)
                             self.load_plugin_from_module(plugin_module)
                         else:
                             print(f"Could not load spec for {module_name} from {init_py_path}")
@@ -63,48 +54,62 @@ class PluginManager:
                     if plugin_name in self.plugins:
                         print(f"Plugin with name '{plugin_name}' already loaded. Skipping.")
                         continue
-                    self.plugins[plugin_name] = plugin_instance
-                    plugin_instance.load()
+                    
+                    actions: List[Action] = [] # Default to empty list
+                    try:
+                        actions = plugin_instance.get_actions()
+                    except Exception as e:
+                        print(f"Error getting actions for plugin {plugin_name}: {e}. Storing empty actions list.")
+                    
+                    self.plugins[plugin_name] = {
+                        'instance': plugin_instance,
+                        'actions': actions
+                    }
+                    plugin_instance.load() # Call load after storing instance and actions
                 except Exception as e:
-                    print(f"Error instantiating or loading plugin class {name} from module {plugin_module.__name__}: {e}")
+                    print(f"Error instantiating, getting actions, or loading plugin class {name} from module {plugin_module.__name__}: {e}")
 
-    def load_plugin(self, plugin_name_or_instance):
+    def load_plugin(self, plugin_name_or_instance: LockdoorPlugin | str):
         """
         Loads a single plugin instance or reloads if already known.
-        This is a simplified version; actual loading might involve more complex path resolution
-        or direct module loading if the plugin isn't discovered through the folder scan.
+        Note: This method's utility is reduced if plugins are primarily loaded via discovery.
+        It might be more relevant if plugins could be added programmatically outside the discovery process.
         """
         if isinstance(plugin_name_or_instance, LockdoorPlugin):
             plugin_instance = plugin_name_or_instance
             plugin_name = plugin_instance.get_name()
+            
             if plugin_name in self.plugins:
                 print(f"Plugin {plugin_name} is already loaded. Unloading first for reload.")
                 self.unload_plugin(plugin_name)
             
-            self.plugins[plugin_name] = plugin_instance
+            actions: List[Action] = []
+            try:
+                actions = plugin_instance.get_actions()
+            except Exception as e:
+                print(f"Error getting actions for plugin {plugin_name}: {e}. Storing empty actions list.")
+
+            self.plugins[plugin_name] = {
+                'instance': plugin_instance,
+                'actions': actions
+            }
             try:
                 plugin_instance.load()
             except Exception as e:
                 print(f"Error during load() method of plugin {plugin_name}: {e}")
             return True
         elif isinstance(plugin_name_or_instance, str):
-            # This part assumes the plugin was already discovered and is in self.plugins
-            # but somehow marked as unloaded (not implemented here) or needs reloading.
-            # For dynamic loading of a specific file not in the folder, a different mechanism would be needed.
-            print(f"Loading plugin by name '{plugin_name_or_instance}' is not fully supported in this basic version without prior discovery.")
-            # Example: if you had a way to get the module/class by name:
-            # plugin_instance = self._get_plugin_instance_by_name(plugin_name_or_instance)
-            # if plugin_instance:
-            #    return self.load_plugin(plugin_instance)
+            print(f"Loading plugin by name '{plugin_name_or_instance}' is not directly supported by this method. Plugins should be discovered.")
             return False
         else:
-            print(f"Invalid argument for load_plugin: {plugin_name_or_instance}. Must be a plugin name (str) or instance.")
+            print(f"Invalid argument for load_plugin: {plugin_name_or_instance}. Must be a plugin instance.")
             return False
 
 
     def unload_plugin(self, plugin_name: str):
         if plugin_name in self.plugins:
-            plugin_instance = self.plugins.pop(plugin_name)
+            plugin_data = self.plugins.pop(plugin_name)
+            plugin_instance = plugin_data['instance']
             try:
                 plugin_instance.unload()
             except Exception as e:
@@ -113,35 +118,71 @@ class PluginManager:
             print(f"Plugin '{plugin_name}' not found.")
 
     def get_plugin(self, plugin_name: str) -> LockdoorPlugin | None:
-        return self.plugins.get(plugin_name)
+        plugin_data = self.plugins.get(plugin_name)
+        if plugin_data:
+            return plugin_data['instance']
+        return None
 
-    def list_plugins(self) -> list[str]:
+    def get_plugin_actions(self, plugin_name: str) -> List[Action] | None:
+        """Returns the actions for a given plugin, or None if plugin not found."""
+        plugin_data = self.plugins.get(plugin_name)
+        if plugin_data:
+            return plugin_data['actions']
+        return None
+
+    def list_plugins_with_details(self) -> Dict[str, Dict[str, Any]]:
+        """Returns a dictionary of all plugins with their instances and actions."""
+        return self.plugins
+        
+    def list_plugins(self) -> list[str]: # Kept for backward compatibility / simple listing
         return list(self.plugins.keys())
+
+    def execute_plugin_action(self, plugin_name: str, action_name: str, params: Dict[str, Any]) -> Any:
+        """
+        Executes a specific action on a given plugin.
+        """
+        plugin_instance = self.get_plugin(plugin_name)
+        if not plugin_instance:
+            raise ValueError(f"Plugin '{plugin_name}' not found.")
+        
+        # Validate if the action_name is one of the plugin's declared actions (optional but good practice)
+        # plugin_actions = self.get_plugin_actions(plugin_name)
+        # if not any(action['name'] == action_name for action in (plugin_actions or [])):
+        #     raise ValueError(f"Action '{action_name}' not found or not declared by plugin '{plugin_name}'.")
+
+        try:
+            return plugin_instance.execute_action(action_name, params)
+        except Exception as e:
+            print(f"Error executing action '{action_name}' for plugin '{plugin_name}': {e}")
+            # Depending on desired error handling, could re-raise or return an error object
+            raise # Re-raise the exception to make the caller aware
+
 
 # Example Usage (Optional - for testing, can be removed or put in a test file)
 if __name__ == '__main__':
-    manager = PluginManager()
-    # Assume 'plugins' directory exists at the same level as this script's execution path
-    # or adjust the path accordingly.
-    # For example, if running from the root of the project:
-    # manager.discover_plugins("plugins")
-    # If this file is in src/plugin_framework_core and plugins is at root:
-    # current_dir = os.path.dirname(os.path.abspath(__file__))
-    # project_root = os.path.dirname(os.path.dirname(current_dir)) # up two levels
+    # This example assumes you have a 'plugins' directory at the project root
+    # and a sample plugin implementing the new interface.
+    
+    # project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     # plugins_dir = os.path.join(project_root, "plugins")
-    # manager.discover_plugins(plugins_dir)
 
-    # print("Loaded plugins:", manager.list_plugins())
+    # print(f"Looking for plugins in: {plugins_dir}")
+    
+    manager = PluginManager()
+    # manager.discover_plugins(plugins_dir) # Adjust path if needed
 
-    # To test this, you would need to:
-    # 1. Create a 'plugins' directory.
-    # 2. Create a sample plugin file in 'plugins', e.g., 'my_plugin.py' with a class
-    #    that inherits from LockdoorPlugin and implements get_name, get_description.
-    # Example my_plugin.py:
-    # from plugin_framework_core.plugin_interface import LockdoorPlugin
-    # class MyTestPlugin(LockdoorPlugin):
-    #     def get_name(self) -> str: return "Test Plugin"
-    #     def get_description(self) -> str: return "A simple test plugin."
-    #     def load(self) -> None: print("MyTestPlugin Loaded")
-    #     def unload(self) -> None: print("MyTestPlugin Unloaded")
+    # print("\nLoaded plugins with details:")
+    # for name, details in manager.list_plugins_with_details().items():
+    #    print(f"  Plugin: {name}")
+    #    print(f"    Instance: {details['instance']}")
+    #    print(f"    Actions: {details['actions']}")
+
+    # Example: if you had an 'about_plugin' that declared an action 'get_info'
+    # if "About Lockdoor" in manager.list_plugins():
+    #     try:
+    #         print("\nExecuting 'get_info' from 'About Lockdoor':")
+    #         result = manager.execute_plugin_action("About Lockdoor", "get_info", {})
+    #         print(f"Result: {result}")
+    #     except Exception as e:
+    #         print(f"Could not execute action: {e}")
     pass

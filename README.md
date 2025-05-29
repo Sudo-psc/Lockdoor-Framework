@@ -95,37 +95,82 @@ The Lockdoor Framework now supports a plugin-based architecture. Plugins are Pyt
    - Each plugin file must contain a class that inherits from `LockdoorPlugin` (defined in `src.plugin_framework_core.plugin_interface`).
 
 **2. Implementing the `LockdoorPlugin` Interface:**
-   Your plugin class must implement the following methods:
+   Your plugin class must implement the following methods from the `LockdoorPlugin` base class:
 
-   ```python
-   from src.plugin_framework_core.plugin_interface import LockdoorPlugin
+   - **`get_name(self) -> str`**:
+     Return the display name of the plugin.
+     ```python
+     def get_name(self) -> str:
+         return "My Awesome Plugin"
+     ```
 
-   class MyCustomPlugin(LockdoorPlugin):
-       def get_name(self) -> str:
-           return "My Custom Plugin"
+   - **`get_description(self) -> str`**:
+     Return a short description of what the plugin does.
+     ```python
+     def get_description(self) -> str:
+         return "This plugin performs awesome task X and Y."
+     ```
 
-       def get_description(self) -> str:
-           return "This is a brief description of what my plugin does."
+   The following methods are optional and can be overridden:
+   - **`load(self) -> None`**: Code to run when the plugin is loaded.
+   - **`unload(self) -> None`**: Code to run when the plugin is unloaded.
 
-       def load(self) -> None:
-           # Optional: Code to run when the plugin is loaded
-           print(f"Plugin '{self.get_name()}' loaded successfully.")
+   **Defining Actions:**
+   Plugins can expose specific functionalities as "actions". These actions are discoverable by the framework and can be invoked.
 
-       def unload(self) -> None:
-           # Optional: Code to run when the plugin is unloaded
-           print(f"Plugin '{self.get_name()}' unloaded.")
+   - **`get_actions(self) -> List[Action]`**:
+     Return a list of actions your plugin provides. Each action is defined as a dictionary (conforming to the `Action` TypedDict structure from `plugin_interface.py`).
+     ```python
+     from src.plugin_framework_core.plugin_interface import Action, ActionParameter # If you want to be explicit with types
+     from typing import List, Dict, Any # For execute_action
 
-       # You can add custom methods for your plugin's logic
-       def my_custom_action(self, data: str) -> str:
-           return f"Processed: {data.upper()}"
-   ```
+     # ... inside your plugin class ...
+     def get_actions(self) -> List[Action]: # Or List[Dict[str, Any]]
+         return [
+             {
+                 'name': 'my_action_1',
+                 'description': 'Performs the first awesome thing.',
+                 'parameters': [
+                     {'name': 'input_data', 'description': 'Data to process', 'type': 'string', 'required': True},
+                     {'name': 'threshold', 'description': 'A threshold value', 'type': 'integer', 'required': False}
+                 ]
+             },
+             {
+                 'name': 'my_simple_action',
+                 'description': 'Does something simple without parameters.',
+                 'parameters': []
+             }
+         ]
+     ```
+     Each parameter in the `parameters` list is also a dictionary (conforming to `ActionParameter`), specifying its `name`, `description`, `type` (e.g., 'string', 'integer', 'boolean', 'file'), and whether it's `required`.
+
+   - **`execute_action(self, action_name: str, params: Dict[str, Any]) -> Any`**:
+     This method is called by the framework to run a specific action.
+     ```python
+     # ... inside your plugin class ...
+     def execute_action(self, action_name: str, params: Dict[str, Any]) -> Any:
+         if action_name == 'my_action_1':
+             data = params.get('input_data')
+             threshold = params.get('threshold', 0) # Default value if not provided
+             if data is None: # Or based on 'required': True
+                 return {"error": "Missing required parameter: input_data"}
+             # ... perform the action ...
+             return f"Processed '{data}' with threshold {threshold}."
+         elif action_name == 'my_simple_action':
+             # ... perform the simple action ...
+             return "Simple action executed successfully."
+         else:
+             # It's good practice to handle unknown actions, though the framework might also check.
+             return {"error": f"Action '{action_name}' not found."}
+     ```
+     The `params` dictionary contains the parameters passed by the caller. The method can return any type of result (string, dictionary, list, etc.), which should ideally be serializable if it's to be displayed in the web UI.
 
 **3. Discovery:**
    - The framework will automatically discover any valid plugin files in the `plugins/` directory when it starts.
-   - Discovered plugins will be listed in the web panel under the "/plugins" route.
+   - Discovered plugins and their actions (including parameter details) will be listed in the web panel under the "/plugins" route.
 
 **4. Example:**
-   See `plugins/about_plugin.py` for a simple example of a plugin.
+   See `plugins/about_plugin.py` and `plugins/utilities_plugin.py` for examples. (Note: `about_plugin.py` has been updated to use the new action system).
 
 ## Multi-platform Support 🌍
 

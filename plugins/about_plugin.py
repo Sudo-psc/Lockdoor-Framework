@@ -1,4 +1,5 @@
-from src.plugin_framework_core.plugin_interface import LockdoorPlugin
+from src.plugin_framework_core.plugin_interface import LockdoorPlugin, Action
+from typing import List, Dict, Any
 
 class AboutPlugin(LockdoorPlugin):
     def get_name(self) -> str:
@@ -8,21 +9,16 @@ class AboutPlugin(LockdoorPlugin):
         return "Displays information about the Lockdoor Framework."
 
     def load(self) -> None:
-        # print(f"Plugin '{self.get_name()}' loaded.") # Optional: for CLI debugging
         pass
 
     def unload(self) -> None:
-        # print(f"Plugin '{self.get_name()}' unloaded.") # Optional: for CLI debugging
         pass
 
-    def get_about_info(self) -> str:
+    def _get_info_content(self) -> str: # Renamed from get_about_info
         # Adapted from the original lockdoors/about.py show() function
         # The shrts.clscprilo(), shrts.oktocont(), and main.menu() calls are omitted
         # as they are CLI-specific and not suitable for a general info-returning method.
         # The color codes are also removed for broader compatibility (e.g., HTML display).
-        
-        # The ASCII art from the example will be used as the original `clscprilo()` is not available
-        # and its output is unknown. A more generic header is used.
         
         about_text = """
 #############################################################
@@ -50,12 +46,40 @@ The plugin system is a new addition.
 """
         return about_text
 
+    def get_actions(self) -> List[Action]:
+        actions: List[Action] = [
+            {
+                'name': 'get_info',
+                'description': 'Returns detailed information about the Lockdoor framework (original version).',
+                'parameters': [] # No parameters for this action
+            }
+        ]
+        return actions
+
+    def execute_action(self, action_name: str, params: Dict[str, Any]) -> Any:
+        if action_name == 'get_info':
+            return self._get_info_content()
+        else:
+            # It's good practice to raise an error or return an error structure
+            # if the action is not recognized.
+            return {"error": f"Action '{action_name}' not found in {self.get_name()}."}
+
 # Example of how to potentially use this plugin's output (for testing/dev):
 # if __name__ == '__main__':
 #     plugin = AboutPlugin()
 #     print(f"Plugin Name: {plugin.get_name()}")
 #     print(f"Plugin Description: {plugin.get_description()}")
 #     plugin.load()
-#     print("\n--- About Info ---")
-#     print(plugin.get_about_info())
+    
+#     actions = plugin.get_actions()
+#     print("\nAvailable Actions:")
+#     for act_def in actions:
+#         print(f"  - {act_def['name']}: {act_def['description']}")
+
+#     if actions:
+#         action_to_test = actions[0]['name']
+#         print(f"\n--- Testing Action: {action_to_test} ---")
+#         result = plugin.execute_action(action_to_test, {})
+#         print(result)
+    
 #     plugin.unload()

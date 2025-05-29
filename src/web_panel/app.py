@@ -20,9 +20,13 @@ def index():
     return render_template('index.html', title='Welcome to Lockdoor Framework')
 
 @app.route('/plugins')
-def list_plugins_route(): # Renamed to avoid conflict with any potential 'plugins' variable
-    loaded_plugins = list(plugin_manager.plugins.values())
-    return render_template('plugins.html', title='Available Plugins', plugins=loaded_plugins)
+def list_plugins_route():
+    # Use list_plugins_with_details() to get instances and actions
+    plugins_with_details = plugin_manager.list_plugins_with_details()
+    # The template will expect a dictionary where keys are plugin names
+    # and values are dicts containing 'instance' and 'actions'.
+    # list_plugins_with_details() already returns this format.
+    return render_template('plugins.html', title='Available Plugins', plugins_data=plugins_with_details)
 
 if __name__ == '__main__':
     # This allows running the app directly from src/web_panel/app.py for development
