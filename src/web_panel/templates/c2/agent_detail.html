@@ -14,8 +14,12 @@
             <p><strong>Remote IP:</strong> {{ agent_info.remote_ip }}</p>
             <p><strong>First Seen:</strong> {{ agent_info.first_seen | datetimeformat }}</p>
             <p><strong>Last Seen:</strong> {{ agent_info.last_seen | datetimeformat }}</p>
-            <p><strong>Initial Data:</strong></p>
-            <pre class="bg-light p-2 rounded"><code>{{ agent_info.initial_data | tojson(indent=2) if agent_info.initial_data else 'N/A' }}</code></pre>
+            <p><strong>OS Info (from DB):</strong> {{ agent_info.os_info | default('N/A') }}</p>
+            <p><strong>User Context (from DB):</strong> {{ agent_info.user_context | default('N/A') }}</p>
+            <p><strong>Initial Full Data:</strong></p>
+            <pre class="bg-light p-2 rounded"><code>{# View ensures initial_data is a dict if parsable, or {} on error #}
+{{ agent_info.initial_data | tojson(indent=2) if agent_info.initial_data else (agent_info.initial_data_str_error if agent_info.initial_data_str_error else 'N/A') }}
+            </code></pre>
           </div>
 
           <div class="col-md-6">

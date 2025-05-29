@@ -1,4 +1,5 @@
 # src/web_panel/c2_views.py
+import json # Added for parsing JSON strings from DB
 from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask import current_app # To access plugin_manager if stored on app
 import time # For formatting timestamps if needed, though Jinja filter is better
@@ -86,12 +87,27 @@ def agents():
     
     agents_list_data = []
     try:
-        agents_list_data = c2_plugin.execute_action('list_registered_agents', {})
-        if isinstance(agents_list_data, dict) and agents_list_data.get('error'): # Handle if plugin returns error dict
-            flash(f"Error listing agents: {agents_list_data['error']}", "danger")
+        agents_list_from_plugin = c2_plugin.execute_action('list_registered_agents', {})
+        if isinstance(agents_list_from_plugin, dict) and agents_list_from_plugin.get('error'):
+            flash(f"Error listing agents: {agents_list_from_plugin['error']}", "danger")
             agents_list_data = []
+        elif isinstance(agents_list_from_plugin, list):
+            agents_list_data = []
+            for agent in agents_list_from_plugin:
+                # The 'os_info' field is directly populated as TEXT in DB, not JSON.
+                # 'initial_data' is stored as JSON string and needs parsing for detailed view.
+                # For the main agent list, we might only display basic fields from 'os_info' or 'initial_data.hostname'
+                # No complex parsing needed here for 'os_info' for the main list display,
+                # as the template will access agent.os_info (which is text)
+                # or agent.initial_data (which is a string here, parsed in detail view)
+                agents_list_data.append(agent) # Pass agent dicts as is for now.
+        else:
+            agents_list_data = []
+            flash("Received unexpected data type for agents list.", "warning")
+
     except Exception as e:
         flash(f"Error listing agents: {str(e)}", "danger")
+        agents_list_data = []
 
     return render_template('agents.html', agents_list=agents_list_data)
 
@@ -119,9 +135,24 @@ def agent_detail(agent_id):
     agent_info_data = {}
     try:
         agent_info_data = c2_plugin.execute_action('get_agent_details', {'agent_id': agent_id})
+        
         if not agent_info_data or (isinstance(agent_info_data, dict) and agent_info_data.get('error')):
             flash(f"Could not retrieve details for agent {agent_id}: {agent_info_data.get('error', 'Agent not found or error.')}", "danger")
             return redirect(url_for('c2.agents'))
+
+        # Parse 'initial_data' if it's a string
+        if agent_info_data and isinstance(agent_info_data.get('initial_data'), str):
+            try:
+                agent_info_data['initial_data'] = json.loads(agent_info_data['initial_data'])
+            except json.JSONDecodeError:
+                print(f"Error decoding initial_data JSON for agent {agent_id}: {agent_info_data['initial_data']}")
+                flash(f"Warning: Could not parse initial agent data for agent {agent_id}.", "warning")
+                agent_info_data['initial_data_str_error'] = agent_info_data['initial_data'] # Keep original string for display if needed
+                agent_info_data['initial_data'] = {} # Default to empty dict on error
+        
+        # 'os_info' is a direct TEXT field from DB, not expected to be JSON here.
+        # 'command_history' should already be a list of dicts from the plugin.
+
     except Exception as e:
         flash(f"Error retrieving agent details: {str(e)}", "danger")
         return redirect(url_for('c2.agents'))

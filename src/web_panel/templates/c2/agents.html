@@ -31,13 +31,8 @@
                 <td>{{ agent.first_seen | datetimeformat }}</td>
                 <td>{{ agent.last_seen | datetimeformat }}</td>
                 <td>
-                  {% if agent.initial_data and agent.initial_data.os_info %}
-                    {{ agent.initial_data.os_info }}
-                  {% elif agent.initial_data and agent.initial_data.hostname %}
-                     {{ agent.initial_data.hostname }}
-                  {% else %}
-                    N/A
-                  {% endif %}
+                  {# 'os_info' is a direct text field from the DB based on the plugin's _db_add_agent logic #}
+                  {{ agent.os_info if agent.os_info else (agent.initial_data.hostname if agent.initial_data and agent.initial_data.hostname else 'N/A') }}
                 </td>
                 <td>
                   <a href="{{ url_for('c2.agent_detail', agent_id=agent.agent_id) }}" class="btn btn-sm btn-primary">

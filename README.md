@@ -203,6 +203,13 @@ A basic Command and Control (C2) module has been added as a plugin named "C2 Man
 -   Agent Beaconing: Registered agents periodically check in.
 -   Basic Command Tasking: Send commands to agents and receive their output.
 -   Web Panel Integration: Manage the listener and interact with agents through the Flask web interface.
+-   Persistent data storage for agents, commands, and outputs using SQLite.
+
+**Data Storage:**
+
+Agent information, command history, and outputs are stored persistently in an SQLite database.
+-   **Database file:** `c2_database.db`
+-   **Location:** The database file is created in a `data/` directory at the root of the project (i.e., `./data/c2_database.db`). This directory will be created automatically if it doesn't exist when the C2 Manager plugin is loaded.
 
 **SSL Certificate Requirement:**
 The HTTPS C2 listener requires SSL certificates (`key.pem` and `cert.pem`) to function.
