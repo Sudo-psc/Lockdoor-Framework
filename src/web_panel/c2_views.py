@@ -13,13 +13,13 @@ def get_c2_plugin():
         # flash("Plugin manager not found on application context.", "critical_error")
         print("CRITICAL: Plugin manager not found on application context.")
         return None
-    
+
     pm = current_app.plugin_manager
     # The plugin name is "C2 Manager" as defined in C2ManagerPlugin.get_name()
-    plugin_data = pm.plugins.get("C2 Manager") 
+    plugin_data = pm.plugins.get("C2 Manager")
     if plugin_data and plugin_data.get('instance'):
         return plugin_data['instance']
-    
+
     # flash("C2 Manager plugin not found or not loaded.", "error") # Flashing here might be too early for some contexts
     print("ERROR: C2 Manager plugin not found or not loaded.")
     return None
@@ -74,7 +74,7 @@ def listeners():
     except Exception as e:
         flash(f"Error getting listener status: {str(e)}", "danger")
         # listener_status_data will remain empty, template should handle this
-    
+
     return render_template('listeners.html', listener_status=listener_status_data)
 
 
@@ -84,7 +84,7 @@ def agents():
     if not c2_plugin:
         flash("C2 Manager plugin not available.", "danger")
         return render_template('c2_error.html', error_message="C2 Manager plugin not available.")
-    
+
     agents_list_data = []
     try:
         agents_list_from_plugin = c2_plugin.execute_action('list_registered_agents', {})
@@ -135,7 +135,7 @@ def agent_detail(agent_id):
     agent_info_data = {}
     try:
         agent_info_data = c2_plugin.execute_action('get_agent_details', {'agent_id': agent_id})
-        
+
         if not agent_info_data or (isinstance(agent_info_data, dict) and agent_info_data.get('error')):
             flash(f"Could not retrieve details for agent {agent_id}: {agent_info_data.get('error', 'Agent not found or error.')}", "danger")
             return redirect(url_for('c2.agents'))
@@ -149,12 +149,12 @@ def agent_detail(agent_id):
                 flash(f"Warning: Could not parse initial agent data for agent {agent_id}.", "warning")
                 agent_info_data['initial_data_str_error'] = agent_info_data['initial_data'] # Keep original string for display if needed
                 agent_info_data['initial_data'] = {} # Default to empty dict on error
-        
+
         # 'os_info' is a direct TEXT field from DB, not expected to be JSON here.
         # 'command_history' should already be a list of dicts from the plugin.
 
     except Exception as e:
         flash(f"Error retrieving agent details: {str(e)}", "danger")
         return redirect(url_for('c2.agents'))
-       
+
     return render_template('agent_detail.html', agent_id=agent_id, agent_info=agent_info_data)

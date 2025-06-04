@@ -54,13 +54,13 @@ class PluginManager:
                     if plugin_name in self.plugins:
                         print(f"Plugin with name '{plugin_name}' already loaded. Skipping.")
                         continue
-                    
+
                     actions: List[Action] = [] # Default to empty list
                     try:
                         actions = plugin_instance.get_actions()
                     except Exception as e:
                         print(f"Error getting actions for plugin {plugin_name}: {e}. Storing empty actions list.")
-                    
+
                     self.plugins[plugin_name] = {
                         'instance': plugin_instance,
                         'actions': actions
@@ -78,11 +78,11 @@ class PluginManager:
         if isinstance(plugin_name_or_instance, LockdoorPlugin):
             plugin_instance = plugin_name_or_instance
             plugin_name = plugin_instance.get_name()
-            
+
             if plugin_name in self.plugins:
                 print(f"Plugin {plugin_name} is already loaded. Unloading first for reload.")
                 self.unload_plugin(plugin_name)
-            
+
             actions: List[Action] = []
             try:
                 actions = plugin_instance.get_actions()
@@ -133,7 +133,7 @@ class PluginManager:
     def list_plugins_with_details(self) -> Dict[str, Dict[str, Any]]:
         """Returns a dictionary of all plugins with their instances and actions."""
         return self.plugins
-        
+
     def list_plugins(self) -> list[str]: # Kept for backward compatibility / simple listing
         return list(self.plugins.keys())
 
@@ -144,7 +144,7 @@ class PluginManager:
         plugin_instance = self.get_plugin(plugin_name)
         if not plugin_instance:
             raise ValueError(f"Plugin '{plugin_name}' not found.")
-        
+
         # Validate if the action_name is one of the plugin's declared actions (optional but good practice)
         # plugin_actions = self.get_plugin_actions(plugin_name)
         # if not any(action['name'] == action_name for action in (plugin_actions or [])):
@@ -162,12 +162,12 @@ class PluginManager:
 if __name__ == '__main__':
     # This example assumes you have a 'plugins' directory at the project root
     # and a sample plugin implementing the new interface.
-    
+
     # project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     # plugins_dir = os.path.join(project_root, "plugins")
 
     # print(f"Looking for plugins in: {plugins_dir}")
-    
+
     manager = PluginManager()
     # manager.discover_plugins(plugins_dir) # Adjust path if needed
 

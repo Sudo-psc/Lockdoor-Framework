@@ -41,11 +41,11 @@ class LockdoorPlugin(ABC):
     def execute_action(self, action_name: str, params: Dict[str, Any]) -> Any:
         """
         Executes a specific action offered by the plugin.
-        
+
         Args:
             action_name: The name of the action to execute.
             params: A dictionary of parameters for the action.
-            
+
         Returns:
             The result of the action, type depends on the action.
         """

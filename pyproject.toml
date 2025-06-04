@@ -18,6 +18,7 @@ classifiers = [
 ]
 dependencies = [
     "Flask>=2.0", # Or "Django>=4.0" if you prefer Django
+    "cryptography>=3.4.0", # For C2 encryption key generation
     # Add other core dependencies here as they become clear
 ]
 

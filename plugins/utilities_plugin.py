@@ -6,23 +6,23 @@ class UtilitiesPlugin(LockdoorPlugin):
     # Color codes are removed for better compatibility with various UIs (e.g., web)
     # The original logo had multiple color codes; this version is plain text.
     _LOGO = """
-            ..',,,'..           
-         .',;;;;;;;;,'.         
-      ..,;;;;;;;;;;;;;;,..      
-     .,;;;,'..'''''.',;;;,.     
-     .;;;;.  ..   .. .;;;;'      (                                         
-     .,;;;.  ...     .;;;;.      ) )               )  (                   
-      ..,;,.  ...   .,;,..       (()/(            ( /(  )\ )           (   
-        .';;'.    .',;'.         /(_))  (    (   )\())(()/(  (    (   )(   
-    ..',,;;;;;,,,,;;;;;,,'..     (_))    )\   )\ ((_)\  ((_)) )\   )\ (()\ 
-  .','.....................''.   | |    ((_) ((_)| |(_) _| | ((_) ((_) ((_)\ 
- .',..',,,,,,,,,,,,,,,,,,,..,,.  | |__ / _ \/ _| | / // _` |/ _ \/ _ \| '_| 
- .;,..,;;;;;;'....';;;;;;;..,;.  |____|\___/\__| |_\_\\__,_|\___/\___/|_|  
- ';;..,;;;;;,..,,..';;;;;,..,;'            © Sofiane Hamlaoui | 2024       
+            ..',,,'..
+         .',;;;;;;;;,'.
+      ..,;;;;;;;;;;;;;;,..
+     .,;;;,'..'''''.',;;;,.
+     .;;;;.  ..   .. .;;;;'      (
+     .,;;;.  ...     .;;;;.      ) )               )  (
+      ..,;,.  ...   .,;,..       (()/(            ( /(  )\ )           (
+        .';;'.    .',;'.         /(_))  (    (   )\())(()/(  (    (   )(
+    ..',,;;;;;,,,,;;;;;,,'..     (_))    )\   )\ ((_)\  ((_)) )\   )\ (()\
+  .','.....................''.   | |    ((_) ((_)| |(_) _| | ((_) ((_) ((_)\
+ .',..',,,,,,,,,,,,,,,,,,,..,,.  | |__ / _ \/ _| | / // _` |/ _ \/ _ \| '_|
+ .;,..,;;;;;;'....';;;;;;;..,;.  |____|\___/\__| |_\_\\__,_|\___/\___/|_|
+ ';;..,;;;;;,..,,..';;;;;,..,;'            © Sofiane Hamlaoui | 2024
 .';;..,;;;;,. .... .,;;;;,..;;,. Lockdoor : A Penetration Testing framework
  ';;..,;;;;'  ....  .;;;;,..;;,.                  v2.3 (Original)
- .,;'.';;;;'.  ..  .';;;;,.';,.  
-   ....;;;;;,'''''',;;;;;'...    
+ .,;'.';;;;'.  ..  .';;;;,.';,.
+   ....;;;;;,'''''',;;;;;'...
        ..................
     """
 
@@ -84,10 +84,10 @@ class UtilitiesPlugin(LockdoorPlugin):
                 prefix = "[?]"
             elif msg_type == 'event':
                 prefix = "[#]"
-            
+
             # Ensure msg_type is capitalized for the output string as per example
             return f"{prefix} {msg_type.upper()}: {text}"
-            
+
         elif action_name == 'get_separator_line':
             return self._SEPARATOR
         else:
@@ -100,7 +100,7 @@ if __name__ == '__main__':
     plugin = UtilitiesPlugin()
     print(f"Plugin Name: {plugin.get_name()}")
     print(f"Plugin Description: {plugin.get_description()}")
-    
+
     print("\nAvailable Actions:")
     for action_def in plugin.get_actions():
         print(f"  - {action_def['name']}: {action_def['description']}")

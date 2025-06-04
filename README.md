@@ -204,6 +204,15 @@ A basic Command and Control (C2) module has been added as a plugin named "C2 Man
 -   Basic Command Tasking: Send commands to agents and receive their output.
 -   Web Panel Integration: Manage the listener and interact with agents through the Flask web interface.
 -   Persistent data storage for agents, commands, and outputs using SQLite.
+-   End-to-end content encryption (AES-GCM) for commands, outputs, and C2 acknowledgments after initial agent registration.
+
+**Communication Security**
+
+In addition to the HTTPS listener providing transport-level encryption, the C2 module now implements an additional layer of end-to-end encryption for the content of C2 messages:
+
+*   **Algorithm:** AES-256-GCM is used for encrypting commands sent to agents and outputs received from agents. This ensures both confidentiality and integrity of the C2 data.
+*   **Key Management:** Each agent is assigned a unique symmetric encryption key upon registration. This key is transmitted to the agent over the initial HTTPS connection.
+*   **Encrypted Payloads:** After registration, all subsequent commands from the C2 and command outputs from the agent (including C2 acknowledgments) are encrypted using this per-agent key.
 
 **Data Storage:**
 
@@ -236,6 +245,12 @@ openssl req -x509 -newkey rsa:2048 -keyout ./c2_certs/key.pem -out ./c2_certs/ce
 
 **Running the Test Agent:**
 A basic Python C2 agent is provided in `dev_tools/c2_agent/basic_agent.py` for testing the C2 functionality.
+
+**Prerequisites for running the agent:**
+- Python 3.x
+- The `requests` library (`pip install requests`)
+- The `cryptography` library (`pip install cryptography`)
+
 1.  **Ensure the C2 Listener is Started:** Use the web panel as described above to start the HTTPS listener.
 2.  **Configure the Agent:**
     *   Open `dev_tools/c2_agent/basic_agent.py`.
@@ -260,8 +275,8 @@ A basic Python C2 agent is provided in `dev_tools/c2_agent/basic_agent.py` for t
 # Changelog (Historical) 📌 :
   #### Version v2.3 IS OUT !! (Original Project)
 
-        - Fixing some CI 
-        - making a more stable version 
+        - Fixing some CI
+        - making a more stable version
         - new docker iaage build
         - adding packages for each supported distros
 

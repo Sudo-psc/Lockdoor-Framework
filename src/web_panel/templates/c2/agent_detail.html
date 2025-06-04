@@ -62,7 +62,7 @@
                   <td>{{ cmd_entry.sent_at | datetimeformat }}</td>
                   <td><pre><code>{{ cmd_entry.command }}</code></pre></td>
                   <td>
-                    <span class="badge 
+                    <span class="badge
                       {% if cmd_entry.status == 'sent' %}badge-info{% elif cmd_entry.status == 'executed' %}badge-success{% else %}badge-secondary{% endif %}">
                       {{ cmd_entry.status | capitalize }}
                     </span>

@@ -4,7 +4,7 @@ import datetime # For the Jinja filter
 from flask import Flask, render_template
 from src.plugin_framework_core import PluginManager
 # Import the c2_views blueprint
-from .c2_views import c2_bp 
+from .c2_views import c2_bp
 
 app = Flask(__name__)
 
@@ -28,7 +28,7 @@ def format_datetime(value, fmt='%Y-%m-%d %H:%M:%S'):
         try:
             return datetime.datetime.fromtimestamp(value).strftime(fmt)
         except ValueError: # Handle potential errors with timestamp conversion
-            return "Invalid timestamp" 
+            return "Invalid timestamp"
     if isinstance(value, datetime.datetime): # If it's already a datetime object
         return value.strftime(fmt)
     return value # Return as is if not a recognized type or already formatted

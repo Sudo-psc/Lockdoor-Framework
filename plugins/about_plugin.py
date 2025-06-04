@@ -19,7 +19,7 @@ class AboutPlugin(LockdoorPlugin):
         # The shrts.clscprilo(), shrts.oktocont(), and main.menu() calls are omitted
         # as they are CLI-specific and not suitable for a general info-returning method.
         # The color codes are also removed for broader compatibility (e.g., HTML display).
-        
+
         about_text = """
 #############################################################
 #                   Lockdoor Framework                      #
@@ -70,7 +70,7 @@ The plugin system is a new addition.
 #     print(f"Plugin Name: {plugin.get_name()}")
 #     print(f"Plugin Description: {plugin.get_description()}")
 #     plugin.load()
-    
+
 #     actions = plugin.get_actions()
 #     print("\nAvailable Actions:")
 #     for act_def in actions:
@@ -81,5 +81,5 @@ The plugin system is a new addition.
 #         print(f"\n--- Testing Action: {action_to_test} ---")
 #         result = plugin.execute_action(action_to_test, {})
 #         print(result)
-    
+
 #     plugin.unload()

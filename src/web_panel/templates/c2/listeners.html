@@ -13,17 +13,17 @@
             <p>Overall Status: <strong>{{ listener_status.status | capitalize }}</strong></p>
             <p>Host: <code>{{ listener_status.host }}</code></p>
             <p>Port: <code>{{ listener_status.port }}</code></p>
-            <p>Listener Thread Active: 
+            <p>Listener Thread Active:
               <span class="badge {{ 'badge-success' if listener_status.thread_active else 'badge-secondary' }}">
                 {{ listener_status.thread_active | string | capitalize }}
               </span>
             </p>
-            <p>Keyfile ({{ listener_status.keyfile_exists | string | lower }}.pem) Exists: 
+            <p>Keyfile ({{ listener_status.keyfile_exists | string | lower }}.pem) Exists:
               <span class="badge {{ 'badge-success' if listener_status.keyfile_exists else 'badge-danger' }}">
                 {{ listener_status.keyfile_exists | string | capitalize }}
               </span>
             </p>
-             <p>Certfile ({{ listener_status.certfile_exists | string | lower }}.pem) Exists: 
+             <p>Certfile ({{ listener_status.certfile_exists | string | lower }}.pem) Exists:
               <span class="badge {{ 'badge-success' if listener_status.certfile_exists else 'badge-danger' }}">
                 {{ listener_status.certfile_exists | string | capitalize }}
               </span>
